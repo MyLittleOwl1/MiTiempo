@@ -535,10 +535,9 @@ async function cargaPrevision7Dias(codigoMunicipio = CODIGO_MUNICIPIO, nombreMun
   }
 }
 
-// ==========================
+/*// ==========================
 // NUEVA FUNCIÓN: PREVISIÓN 7 DÍAS
 // ==========================
-
 async function cargaPrevision7Dias(codigoMunicipio = CODIGO_MUNICIPIO, nombreMunicipio) {
   const statusEl = document.getElementById("status-7dias");
   const cont = document.getElementById("forecast-7d-container");
@@ -644,7 +643,7 @@ async function cargaPrevision7Dias(codigoMunicipio = CODIGO_MUNICIPIO, nombreMun
       <p>${err.message}</p>
     </div>`;
   }
-}
+}*/
 
 // ==========================
 // PRESIÓN HORARIA HOY
