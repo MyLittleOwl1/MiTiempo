@@ -2,13 +2,11 @@
 // CONFIGURACIÓN BÁSICA
 // ==========================
 
-//const API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxdWlqb3Rlcm9Ab3V0bG9vay5lcyIsImp0aSI6IjQwMzhlYzI5LTg0ZDUtNGQxNS1iMDBkLTUwOWE0NmI5NjhjYSIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNzQxNTUzNTE0LCJ1c2VySWQiOiI0MDM4ZWMyOS04NGQ1LTRkMTUtYjAwZC01MDlhNDZiOTY4Y2EiLCJyb2xlIjoiIn0.P6gmbNhBkvOo1LfkDw54uISVFuJxuGmc36FmqMZhgOU"; // Pon aquí tu API Key real de AEMET
-// Tu nuevo Proxy en InfinityFree
-const PROXY_URL = "https://littleowl1.infinityfree.me/proxy.php"; 
+const API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxdWlqb3Rlcm9Ab3V0bG9vay5lcyIsImp0aSI6IjQwMzhlYzI5LTg0ZDUtNGQxNS1iMDBkLTUwOWE0NmI5NjhjYSIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNzQxNTUzNTE0LCJ1c2VySWQiOiI0MDM4ZWMyOS04NGQ1LTRkMTUtYjAwZC01MDlhNDZiOTY4Y2EiLCJyb2xlIjoiIn0.P6gmbNhBkvOo1LfkDw54uISVFuJxuGmc36FmqMZhgOU"; // Pon aquí tu API Key real de AEMET
 let CODIGO_MUNICIPIO = "14021";        // Córdoba (mantengo por defecto)
 // Default: estación por defecto (se puede cambiar con el select)
 let ID_ESTACION = "5402";              // Córdoba Aeropuerto (modificable dinámicamente)
-//const API_BASE = "https://opendata.aemet.es/opendata"; // BasePath de la doc
+const API_BASE = "https://opendata.aemet.es/opendata"; // BasePath de la doc
 
 // Cargamos fichero de estaciones una vez
 let ESTACIONES = []; // array completo de estaciones (cargado desde JSON)
@@ -17,10 +15,9 @@ let ESTACIONES = []; // array completo de estaciones (cargado desde JSON)
 let MUNICIPIOS = []; // array of {codigo, nombre, provincia, filaRaw}
 
 function validaApiKey() {
- // if (!API_KEY || typeof API_KEY !== "string" || API_KEY.trim().length < 10 || API_KEY === "TU_API_KEY_AEMET_AQUI") {
+  if (!API_KEY || typeof API_KEY !== "string" || API_KEY.trim().length < 10 || API_KEY === "TU_API_KEY_AEMET_AQUI") {
     throw new Error("Falta la API Key de AEMET. Edita el código y rellena la constante API_KEY.");
- // }
- return true; 
+  }
 }
 
 // ==========================
@@ -52,7 +49,7 @@ function limpiaError(id) {
   el.classList.add("hidden");
 }
 
-/*async function fetchAemet(ruta) {
+async function fetchAemet(ruta) {
   // ruta: cadena que empieza por "/api/..."
   const urlPrimaria = `${API_BASE}${ruta}?api_key=${encodeURIComponent(API_KEY)}`;
   const respMeta = await fetch(urlPrimaria);
@@ -80,35 +77,7 @@ function limpiaError(id) {
   } catch (e) {
     throw new Error("Error parseando JSON de AEMET: " + e.message);
   }
-}*/
-
-async function fetchAemet(endpoint) {
-    // endpoint: por ejemplo "/api/observacion/convencional/datos/estacion/5402"
-    
-    // Construimos la llamada a NUESTRO proxy
-    // Le pasamos el endpoint de AEMET que queremos como parámetro GET
-    const urlProxy = `${PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
-
-    console.log("Pidiendo datos al proxy:", urlProxy);
-
-    const resp = await fetch(urlProxy);
-
-    if (!resp.ok) {
-        throw new Error(`Error HTTP Proxy: ${resp.status}`);
-    }
-
-    // El proxy ya nos devuelve el JSON final de datos (ya decodificado y listo)
-    // No hace falta la lógica de doble fetch (meta -> datos) aquí.
-    const datos = await resp.json();
-    
-    // Verificamos si el propio JSON trae un error de AEMET (estado != 200)
-    if (datos.estado && datos.estado != 200) {
-         throw new Error(`Error API AEMET: ${datos.descripcion || 'Desconocido'}`);
-    }
-
-    return datos;
 }
-
 
 // ==========================
 // TIEMPO ACTUAL (OBSERVACIÓN)
