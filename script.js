@@ -2,10 +2,7 @@
 // CONFIGURACIÓN BÁSICA
 // ==========================
 
-
-//const PROXY_URL = "https://littleowl1.infinityfree.me/proxy.php"; // Pon aquí tu API Key real de AEMET
 const PROXY_URL = "https://mi-tiempo.vercel.app/api/proxy";
-
 
 let CODIGO_MUNICIPIO = "14021";        // Córdoba (mantengo por defecto)
 // Default: estación por defecto (se puede cambiar con el select)
