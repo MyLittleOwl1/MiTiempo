@@ -2,11 +2,11 @@
 // CONFIGURACIÓN BÁSICA
 // ==========================
 
-const PROXY_URL = "https://littleowl1.infinityfree.me/proxy.php"; // Pon aquí tu API Key real de AEMET
+const API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxdWlqb3Rlcm9Ab3V0bG9vay5lcyIsImp0aSI6IjQwMzhlYzI5LTg0ZDUtNGQxNS1iMDBkLTUwOWE0NmI5NjhjYSIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNzQxNTUzNTE0LCJ1c2VySWQiOiI0MDM4ZWMyOS04NGQ1LTRkMTUtYjAwZC01MDlhNDZiOTY4Y2EiLCJyb2xlIjoiIn0.P6gmbNhBkvOo1LfkDw54uISVFuJxuGmc36FmqMZhgOU"; // Pon aquí tu API Key real de AEMET
 let CODIGO_MUNICIPIO = "14021";        // Córdoba (mantengo por defecto)
 // Default: estación por defecto (se puede cambiar con el select)
 let ID_ESTACION = "5402";              // Córdoba Aeropuerto (modificable dinámicamente)
-// const API_BASE ya no se usa - usamos PROXY_URL // BasePath de la doc
+const API_BASE = "https://opendata.aemet.es/opendata"; // BasePath de la doc
 
 // Cargamos fichero de estaciones una vez
 let ESTACIONES = []; // array completo de estaciones (cargado desde JSON)
@@ -15,9 +15,9 @@ let ESTACIONES = []; // array completo de estaciones (cargado desde JSON)
 let MUNICIPIOS = []; // array of {codigo, nombre, provincia, filaRaw}
 
 function validaApiKey() {
-    // Ya no es necesaria - la clave está en el servidor proxy
-    return true;
-}
+  if (!API_KEY || typeof API_KEY !== "string" || API_KEY.trim().length < 10 || API_KEY === "TU_API_KEY_AEMET_AQUI") {
+    throw new Error("Falta la API Key de AEMET. Edita el código y rellena la constante API_KEY.");
+  }
 }
 
 // ==========================
@@ -49,25 +49,41 @@ function limpiaError(id) {
   el.classList.add("hidden");
 }
 
-async function fetchAemet(endpoint) {
-    // Usa el proxy en lugar de llamar directamente a AEMET
-    const urlProxy = `${PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
-    console.log("Pidiendo datos al proxy:", urlProxy);
+async function fetchAemet(ruta) {
+  // ruta: cadena que empieza por "/api/..."
+  const urlPrimaria = `${API_BASE}${ruta}?api_key=${encodeURIComponent(API_KEY)}`;
+  const respMeta = await fetch(urlPrimaria);
+  if (!respMeta.ok) {
+    throw new Error(`Error HTTP AEMET (meta): ${respMeta.status}`);
+  }
 
-    const resp = await fetch(urlProxy);
+  const meta = await respMeta.json();
+  if (!meta.datos) {
+    throw new Error("Respuesta de AEMET sin campo 'datos'");
+  }
 
-    if (!resp.ok) {
-        throw new Error(`Error HTTP Proxy: ${resp.status}`);
-    }
+  const respDatos = await fetch(meta.datos);
+  if (!respDatos.ok) {
+    throw new Error(`Error HTTP AEMET (datos): ${respDatos.status}`);
+  }
 
-    const datos = await resp.json();
-
-    if (datos.estado && datos.estado != 200) {
-        throw new Error(`Error API AEMET: ${datos.descripcion || 'Desconocido'}`);
-    }
-
-    return datos;
+  const contentType = respDatos.headers.get("content-type") || "";
+  const m = contentType.match(/charset=([^;]+)/i);
+  const charset = m ? m[1].trim().toLowerCase() : "utf-8";
+  const buffer = await respDatos.arrayBuffer();
+  const text = new TextDecoder(charset).decode(buffer);
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error("Error parseando JSON de AEMET: " + e.message);
+  }
 }
+
+// ==========================
+// TIEMPO ACTUAL (OBSERVACIÓN)
+// ==========================
+
+// Helper: actualiza solo el campo de temperatura (no reescribe todo el contenedor)
 function muestraTemperatura(valor) {
   const el = document.getElementById("temp-actual");
   if (!el) return;
@@ -519,10 +535,9 @@ async function cargaPrevision7Dias(codigoMunicipio = CODIGO_MUNICIPIO, nombreMun
   }
 }
 
-// ==========================
+/*// ==========================
 // NUEVA FUNCIÓN: PREVISIÓN 7 DÍAS
 // ==========================
-
 async function cargaPrevision7Dias(codigoMunicipio = CODIGO_MUNICIPIO, nombreMunicipio) {
   const statusEl = document.getElementById("status-7dias");
   const cont = document.getElementById("forecast-7d-container");
@@ -628,7 +643,7 @@ async function cargaPrevision7Dias(codigoMunicipio = CODIGO_MUNICIPIO, nombreMun
       <p>${err.message}</p>
     </div>`;
   }
-}
+}*/
 
 // ==========================
 // PRESIÓN HORARIA HOY
