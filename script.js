@@ -1029,4 +1029,48 @@ function llenaSelectMunicipios() {
 })();
 
 // Inicializa la aplicación
-inicializa();;
+inicializa();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('Service Worker registrado con alcance:', reg.scope))
+      .catch(err => console.warn('No se ha podido registrar el Service Worker:', err));
+  });
+}
+
+// Manejar instalación PWA (Before Install Prompt)
+let deferredPrompt = null;
+const btnInstall = document.getElementById('btn-install');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (btnInstall) btnInstall.style.display = 'inline-block';
+});
+    navigator.serviceWorker.register('service-worker.js')
+if (btnInstall) {
+  btnInstall.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    if (choice && choice.outcome === 'accepted') {
+      console.log('Usuario aceptó la instalación');
+    } else {
+      console.log('Usuario rechazó la instalación');
+    }
+    deferredPrompt = null;
+    btnInstall.style.display = 'none';
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  console.log('App instalada');
+  if (btnInstall) btnInstall.style.display = 'none';
+  const statusEl = document.getElementById('pwa-status');
+  if (statusEl) statusEl.textContent = 'App instalada';
+});
+
+window.addEventListener('load', () => {
+  const statusEl = document.getElementById('pwa-status');
+  if (statusEl) statusEl.textContent = 'PWA: cargada';
+});
